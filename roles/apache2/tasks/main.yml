@@ -1,0 +1,33 @@
+---
+# tasks file for apache2
+- name: Install apache2
+  # hosts: mainserver
+  become: true
+  apt:
+    name: apache2
+    state: present
+    update_cache: true
+  notify:
+    - Enable apache2 service
+    - Start apache2 service
+
+- name: Allow HTTP & HTTPS connection from firewall
+  become: true
+  command: ufw allow 'Apache Full'
+
+- name: Create Apache Virtual Host at /etc/apache2/sites-available/
+  template:
+    src: drupal.conf.j2
+    dest: /etc/apache2/sites-available/drupal.conf
+  notify:
+    - Reload apache2
+
+- name: Enable apachi site a2ensite 
+  command: a2ensite "{{ domain }}"
+  notify:
+  - restart apache2
+
+- name: Disable the default Apache configuration 
+  command: a2dissite 000-default.conf
+  notify:
+  - restart apache2

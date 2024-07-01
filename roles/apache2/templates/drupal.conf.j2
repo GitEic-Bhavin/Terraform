@@ -1,0 +1,18 @@
+<VirtualHost *:80>
+
+ServerAdmin webmaster@localhost
+
+ServerName localhost
+ServerAlias localhost
+DocumentRoot /var/www/html/drupal
+
+<Directory /var/www/html/drupal/>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+</Directory>
+
+ErrorLog ${APACHE_LOG_DIR}/localhost_error.log
+CustomLog ${APACHE_LOG_DIR}/localhost_access.log combined
+
+</VirtualHost>

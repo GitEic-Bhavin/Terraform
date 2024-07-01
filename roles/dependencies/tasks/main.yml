@@ -1,0 +1,32 @@
+---
+# tasks file for dependencies
+- name: Insatlling PHP Packages 
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: true
+  with_items: 
+    - php 
+    - libapache2-mod-php 
+    - php-dev 
+    - php-bcmath 
+    - php-intl 
+    - php-soap 
+    - php-zip 
+    - php-curl 
+    - php-mbstring 
+    - php-mysql 
+    - php-gd
+    - php-xml
+    - unzip
+    
+    # - mysql-client # optionally whil you want to check database connction from web to data server. 
+
+- name: Show version of PHP
+  become: true
+  command: php -v
+  register: php
+
+- debug:
+    var: php.stdout

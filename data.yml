@@ -1,0 +1,6 @@
+---
+- name: Set up mysql for durpal
+  hosts: dataserver
+  become: true
+  roles:
+    - mysql

@@ -1,0 +1,8 @@
+---
+- name: install & run sonarqube on ubuntu
+  hosts: webserver
+  become: true
+  roles:
+    - apache2
+    - dependencies
+    - drupal

@@ -1,0 +1,144 @@
+---
+# tasks file for mysql
+
+- name: Install Python 3
+  become: true
+  package:
+    name: python3
+    state: present
+    update_cache: true
+
+- name: Install pip
+  apt:
+    name: python3-pip
+    update_cache: yes
+    state: present
+
+- name: install pymysql
+  become: true
+  pip:
+    name: pymysql
+    state: present
+    # update_cache: true
+
+- name: Install MySQL Database for Drupal
+  become: true
+  apt: 
+    name: "{{ item }}"
+    update_cache: true
+    state: present
+  with_items: 
+    - mysql-server
+  notify: 
+    - Enable mysql service
+    - Start mysql service
+
+- name: Set Root User & Root Password to Secure MySq
+  mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_user: root
+    login_password: bhavin
+
+- name: Remove Anonymous Users
+  mysql_user:
+    name: ""
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+# If You Disallow root user to Login Remotely & you performed this below tasks for same.
+# You will not be able to perform further tasks like remove test db, reload prev, creaet db user, password etc.
+
+# - name: Disallow Root Login Remotely
+#   mysql_user:
+#     name: root
+#     state: absent
+#     login_user: root
+#     login_password: "{{ mysql_root_password }}"
+
+
+- name: Remove the MySQL test database
+  mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+
+
+
+- name: Ensure no user named 'db_user'@'localhost' exists, also passing in the auth credentials.
+  mysql_user:
+    name: drupal1
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+- name: Create Database for drupal 
+  mysql_db:
+    name: "{{ mysql_db_name }}"
+    state: present
+    # login_host: webserver
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user with password with access from any host (0.0.0.0)
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_user_password }}"
+    state: present
+    host: "%"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+# If you want to give all priv to your database only. use priv: "{{ your_db_name }}.*:ALL,GRANT"
+- name: Grant all privileges on all databases to a user from any host
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_user_password }}"
+    priv: '*.*:ALL,GRANT'
+    state: present
+    host: "%"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+# drop user 'drupal'@'%'
+# recreate drupal user with drupal user will hava all access on all ip with password 'bhavin@123'
+# Give all prev to drupal user with *.* wiht all ip 
+
+# create user 'drupal'@'%' identified by 'Bhavin@123';
+# grant all on *.* to 'drupal'@'%'' with grant option;
+
+
+- name: Allow MySQL Server to listen on all IPV4 to access user your database.
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    line: "{{ item }}"
+    # state: present/etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address\s+=\s+127.0.0.1$'
+  with_items: 
+    - 'bind-address            = 0.0.0.0'
+  notify: 
+    - Restart MySQL Service
+
+# Explaination for regexp works.
+# regexp: '^bind-address\s+=\s+127.0.0.1$'
+# Here, ^ -- match start of a line
+# $ -- match end of a line
+# \s+ -- match one or more space or tab in a line
+# \s+= -- match one or more space or tab before "=" in a line
+# bind-address         = 127.0.0.1
+# \s+= -- match one or more space or tabs befor "="
+# =\s+ -- match one or more space or tabs after "="
+
+
+
+
+# sudo usermod -a G "group_name" "user_name" to add user into group
+# mysql -h "database-server-endpoint" -P 3306 -u "user" -p to connect your database server from webserver

@@ -1,0 +1,26 @@
+---
+# tasks file for drupal
+- name: Download Drupal 
+  get_url:
+    url: "https://ftp.drupal.org/files/projects/drupal-9.3.13.zip"
+    dest: "/home/ubuntu/drupal-9.3.13.zip"
+
+- name: Unzip drupal file
+  unarchive:
+    src: "/home/ubuntu/drupal-9.3.13.zip"
+    dest: "/var/www/html/"
+    remote_src: yes
+
+- name: Rename Drupal unzip file
+  command: "mv /var/www/html/drupal-9.3.13/ /var/www/html/drupal/"
+
+- name: Change Ownership & Permission of /var/www/html/
+  become: true
+  file:
+    path: "/var/www/html/"
+    state: directory
+    owner: "www-data"
+    group: "www-data"
+    mode: "0755"
+    recurse: yes
+

@@ -1,0 +1,15 @@
+# handlers file for mysql
+- name: Enable mysql service
+  service:
+    name: mysql
+    state: started
+
+- name: Start mysql service
+  service:
+    name: mysql
+    state: started
+
+- name: Restart MySQL Service
+  service:
+    name: mysql
+    state: restarted
